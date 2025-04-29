@@ -90,10 +90,8 @@
       background: #000;
       margin-top: 10px;
       touch-action: none;
-      width: 100%;
-      max-width: 400px; /* يمكن تعديل هذا العرض حسب الحاجة */
-      height: auto;
-      aspect-ratio: 1;
+      max-width: 100%;
+      max-height: 80vh;
     }
 
     footer {
@@ -108,20 +106,20 @@
     /* عصا التحكم */
     .joystick {
       position: fixed;
-      bottom: 50px;
+      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
-      width: 120px;
-      height: 120px;
-      display: block;
+      width: 90px;
+      height: 90px;
       z-index: 1000;
+      display: none;
     }
 
     .joystick .base {
       position: absolute;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle, #b0bec5 30%, #78909c 70%);
+      background: radial-gradient(circle, #bdbdbd 30%, #616161 70%);
       opacity: 0.8;
       border-radius: 50%;
     }
@@ -130,9 +128,9 @@
       position: absolute;
       left: 30px;
       top: 30px;
-      width: 60px;
-      height: 60px;
-      background: radial-gradient(circle, #ffffff 20%, #90a4ae 80%);
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle, #ffffff 20%, #757575 80%);
       border-radius: 50%;
       box-shadow: 0 0 10px #fff;
     }
@@ -157,7 +155,7 @@
 
   <div id="gameContainer">
     <div id="scoreBoard">النقاط: <span id="score">0</span></div>
-    <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
   </div>
 
   <!-- عصا التحكم -->
