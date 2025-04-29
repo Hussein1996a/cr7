@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لعبة CR7</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      color: white;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 1s ease-in-out;
+    }
+
+    h1.title {
+      font-size: 48px;
+      color: #4CAF50;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 10px black;
+    }
+
+    .button {
+      padding: 15px 30px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #4CAF50, #2E7D32);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .button:hover {
+      background: linear-gradient(45deg, #66BB6A, #388E3C);
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #2c2c2c;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      text-align: right;
+    }
+
+    #gameContainer {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #scoreBoard {
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 26px;
+      color: #ffeb3b;
+      font-weight: bold;
+      box-shadow: 0 0 10px black;
+      margin-top: 10px;
+    }
+
+    #gameCanvas {
+      background: #000;
+      margin-top: 10px;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    .controls button {
+      padding: 10px;
+      font-size: 18px;
+      margin: 5px;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 10px;
+      text-align: center;
+      width: 100%;
+      color: #ddd;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="mainMenu">
+    <h1 class="title">لعبة الثعبان CR7</h1>
+    <button class="button" onclick="startGame()">لعب</button>
+    <button class="button" onclick="showInstructions()">طريقة اللعب</button>
+  </div>
+
+  <div class="modal" id="instructionsModal">
+    <div class="modal-content">
+      <h2>طريقة اللعب</h2>
+      <p>قم بخطي الحواجز بأكلها. كلما أكلت حاجزًا تكبر الدودة. لا تلمس نفسك!<br>
+        يمكنك الدخول من أحد الجدران والخروج من الجهة المقابلة.<br>
+        استخدم اللمس أو الأزرار للتحكم بالاتجاه.</p>
+      <button class="button" onclick="closeInstructions()">إغلاق</button>
+    </div>
+  </div>
+
+  <div id="gameContainer">
+    <div id="scoreBoard">النقاط: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <div class="controls">
+      <button onclick="changeDirection('up')">↑</button>
+      <div>
+        <button onclick="changeDirection('left')">←</button>
+        <button onclick="changeDirection('down')">↓</button>
+        <button onclick="changeDirection('right')">→</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Designed by Hussein 2025</footer>
+
+  <script>
+    const modal = document.getElementById("instructionsModal");
+    const gameContainer = document.getElementById("gameContainer");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreElement = document.getElementById("score");
+
+    const gridSize = 15;
+    const tileCount = canvas.width / gridSize;
+
+    let snake = [{x: 10, y: 10}];
+    let direction = 'right';
+    let food = getRandomPosition();
+    let score = 0;
+    let interval;
+    let imageLoaded = false;
+    let headImg = new Image();
+    headImg.src = '1.jpg';
+    headImg.onload = () => { imageLoaded = true; };
+
+    function showInstructions() {
+      modal.style.display = "flex";
+    }
+    function closeInstructions() {
+      modal.style.display = "none";
+    }
+
+    function startGame() {
+      document.getElementById("mainMenu").style.display = "none";
+      gameContainer.style.display = "flex";
+      document.addEventListener("touchstart", handleTouch);
+      interval = setInterval(updateGame, 120);
+    }
+
+    function changeDirection(dir) {
+      const opposite = {up: 'down', down: 'up', left: 'right', right: 'left'};
+      if (direction !== opposite[dir]) direction = dir;
+    }
+
+    function updateGame() {
+      const head = {...snake[0]};
+      if (direction === 'right') head.x++;
+      else if (direction === 'left') head.x--;
+      else if (direction === 'up') head.y--;
+      else if (direction === 'down') head.y++;
+
+      head.x = (head.x + tileCount) % tileCount;
+      head.y = (head.y + tileCount) % tileCount;
+
+      if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        clearInterval(interval);
+        gameOver();
+        return;
+      }
+
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        food = getRandomPosition();
+        score++;
+        scoreElement.textContent = score;
+      } else {
+        snake.pop();
+      }
+
+      drawGame();
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snake.forEach((segment, index) => {
+        if (index === 0 && imageLoaded) {
+          ctx.drawImage(headImg, segment.x * gridSize - 5, segment.y * gridSize - 5, gridSize + 10, gridSize + 10);
+        } else {
+          ctx.fillStyle = '#4CAF50';
+          ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        }
+      });
+      ctx.fillStyle = 'red';
+      ctx.beginPath();
+      ctx.arc(food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2, gridSize/2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function getRandomPosition() {
+      return {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount)
+      };
+    }
+
+    function gameOver() {
+      ctx.fillStyle = 'white';
+      ctx.font = '20px Arial';
+      ctx.fillText(`لقد خسرت! النقاط: ${score}`, 50, 150);
+
+      let countdown = 5;
+      const countDownInterval = setInterval(() => {
+        ctx.clearRect(0, 260, canvas.width, 50);
+        ctx.fillText(`العودة خلال ${countdown}...`, 70, 280);
+        countdown--;
+        if (countdown < 0) {
+          clearInterval(countDownInterval);
+          location.reload();
+        }
+      }, 1000);
+    }
+
+    function handleTouch(e) {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+
+      const head = snake[0];
+      const headX = head.x * gridSize + gridSize/2;
+      const headY = head.y * gridSize + gridSize/2;
+
+      const dx = x - headX;
+      const dy = y - headY;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        changeDirection(dx > 0 ? 'right' : 'left');
+      } else {
+        changeDirection(dy > 0 ? 'down' : 'up');
+      }
+    }
+
+    // تغيير الخلفية كل 4 ثواني
+    const backgrounds = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg'];
+    let bgIndex = 0;
+    function changeBackground() {
+      document.body.style.backgroundImage = `url('${backgrounds[bgIndex]}')`;
+      bgIndex = (bgIndex + 1) % backgrounds.length;
+    }
+    changeBackground();
+    setInterval(changeBackground, 6000);
+  </script>
+</body>
+</html>
