@@ -94,8 +94,9 @@
 
     #joystickContainer {
       position: absolute;
-      bottom: 30px;
-      left: 30px;
+      bottom: 30px; /* التعديل هنا */
+      left: 50%; /* التعديل هنا */
+      transform: translateX(-50%); /* التعديل هنا */
     }
 
     footer {
@@ -248,7 +249,7 @@
       const joystick = nipplejs.create({
         zone: document.getElementById('joystickContainer'),
         mode: 'static',
-        position: { left: '40px', bottom: '40px' },
+        position: { left: '50%', bottom: '30px' },
         color: 'green',
         size: 100
       });
