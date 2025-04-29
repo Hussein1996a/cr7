@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar">
 <head>
   <meta charset="UTF-8" />
@@ -89,16 +89,7 @@
     #gameCanvas {
       background: #000;
       margin-top: 10px;
-    }
-
-    .controls {
-      margin-top: 10px;
-    }
-
-    .controls button {
-      padding: 10px;
-      font-size: 18px;
-      margin: 5px;
+      touch-action: none;
     }
 
     footer {
@@ -108,6 +99,37 @@
       width: 100%;
       color: #ddd;
       font-size: 14px;
+    }
+
+    /* عصا التحكم */
+    .joystick {
+      position: fixed;
+      bottom: 50px;
+      left: 50px;
+      width: 120px;
+      height: 120px;
+      display: none;
+      z-index: 1000;
+    }
+
+    .joystick .base {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, #ff4081 30%, #880e4f 70%);
+      opacity: 0.5;
+      border-radius: 50%;
+    }
+
+    .joystick .stick {
+      position: absolute;
+      left: 30px;
+      top: 30px;
+      width: 60px;
+      height: 60px;
+      background: radial-gradient(circle, #ffffff 20%, #ec407a 80%);
+      border-radius: 50%;
+      box-shadow: 0 0 10px #fff;
     }
   </style>
 </head>
@@ -123,7 +145,7 @@
       <h2>طريقة اللعب</h2>
       <p>قم بخطي الحواجز بأكلها. كلما أكلت حاجزًا تكبر الدودة. لا تلمس نفسك!<br>
         يمكنك الدخول من أحد الجدران والخروج من الجهة المقابلة.<br>
-        استخدم اللمس أو الأزرار للتحكم بالاتجاه.</p>
+        استخدم الشاشة للمس والتحكم بالاتجاه.</p>
       <button class="button" onclick="closeInstructions()">إغلاق</button>
     </div>
   </div>
@@ -131,14 +153,12 @@
   <div id="gameContainer">
     <div id="scoreBoard">النقاط: <span id="score">0</span></div>
     <canvas id="gameCanvas" width="300" height="300"></canvas>
-    <div class="controls">
-      <button onclick="changeDirection('up')">↑</button>
-      <div>
-        <button onclick="changeDirection('left')">←</button>
-        <button onclick="changeDirection('down')">↓</button>
-        <button onclick="changeDirection('right')">→</button>
-      </div>
-    </div>
+  </div>
+
+  <!-- عصا التحكم -->
+  <div id="joystick" class="joystick">
+    <div class="base"></div>
+    <div class="stick"></div>
   </div>
 
   <footer>Designed by Hussein 2025</footer>
@@ -166,6 +186,7 @@
     function showInstructions() {
       modal.style.display = "flex";
     }
+
     function closeInstructions() {
       modal.style.display = "none";
     }
@@ -173,7 +194,6 @@
     function startGame() {
       document.getElementById("mainMenu").style.display = "none";
       gameContainer.style.display = "flex";
-      document.addEventListener("touchstart", handleTouch);
       interval = setInterval(updateGame, 120);
     }
 
@@ -250,27 +270,7 @@
       }, 1000);
     }
 
-    function handleTouch(e) {
-      const touch = e.touches[0];
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
-
-      const head = snake[0];
-      const headX = head.x * gridSize + gridSize/2;
-      const headY = head.y * gridSize + gridSize/2;
-
-      const dx = x - headX;
-      const dy = y - headY;
-
-      if (Math.abs(dx) > Math.abs(dy)) {
-        changeDirection(dx > 0 ? 'right' : 'left');
-      } else {
-        changeDirection(dy > 0 ? 'down' : 'up');
-      }
-    }
-
-    // تغيير الخلفية كل 4 ثواني
+    // تغيير الخلفية
     const backgrounds = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg'];
     let bgIndex = 0;
     function changeBackground() {
@@ -279,6 +279,46 @@
     }
     changeBackground();
     setInterval(changeBackground, 6000);
+
+    // joystick touch
+    const joystick = document.getElementById("joystick");
+    const stick = joystick.querySelector(".stick");
+    let joyStart = { x: 0, y: 0 };
+
+    canvas.addEventListener("touchstart", function (e) {
+      if (e.touches.length > 0) {
+        let touch = e.touches[0];
+        joyStart.x = touch.clientX;
+        joyStart.y = touch.clientY;
+        joystick.style.left = (joyStart.x - 60) + "px";
+        joystick.style.top = (joyStart.y - 60) + "px";
+        joystick.style.display = "block";
+      }
+    }, { passive: true });
+
+    canvas.addEventListener("touchmove", function (e) {
+      if (e.touches.length > 0) {
+        let touch = e.touches[0];
+        let dx = touch.clientX - joyStart.x;
+        let dy = touch.clientY - joyStart.y;
+        let angle = Math.atan2(dy, dx);
+        let distance = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
+        stick.style.left = (30 + Math.cos(angle) * distance) + "px";
+        stick.style.top = (30 + Math.sin(angle) * distance) + "px";
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          changeDirection(dx > 0 ? 'right' : 'left');
+        } else {
+          changeDirection(dy > 0 ? 'down' : 'up');
+        }
+      }
+    }, { passive: true });
+
+    canvas.addEventListener("touchend", function () {
+      joystick.style.display = "none";
+      stick.style.left = "30px";
+      stick.style.top = "30px";
+    });
   </script>
 </body>
 </html>
