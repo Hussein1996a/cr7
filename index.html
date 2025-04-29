@@ -90,6 +90,7 @@
       background: #000;
       margin-top: 10px;
       touch-action: none;
+      border: 2px solid #4CAF50;
     }
 
     footer {
@@ -104,10 +105,11 @@
     /* عصا التحكم */
     .joystick {
       position: fixed;
-      bottom: 50px;
-      left: 50px;
-      width: 120px;
-      height: 120px;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 150px;
       display: none;
       z-index: 1000;
     }
@@ -123,8 +125,8 @@
 
     .joystick .stick {
       position: absolute;
-      left: 30px;
-      top: 30px;
+      left: 45px;
+      top: 45px;
       width: 60px;
       height: 60px;
       background: radial-gradient(circle, #ffffff 20%, #ec407a 80%);
@@ -152,7 +154,7 @@
 
   <div id="gameContainer">
     <div id="scoreBoard">النقاط: <span id="score">0</span></div>
-    <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
   </div>
 
   <!-- عصا التحكم -->
@@ -170,7 +172,7 @@
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
 
-    const gridSize = 15;
+    const gridSize = 20;
     const tileCount = canvas.width / gridSize;
 
     let snake = [{x: 10, y: 10}];
@@ -256,12 +258,12 @@
     function gameOver() {
       ctx.fillStyle = 'white';
       ctx.font = '20px Arial';
-      ctx.fillText(`لقد خسرت! النقاط: ${score}`, 50, 150);
+      ctx.fillText(`لقد خسرت! النقاط: ${score}`, 100, 200);
 
       let countdown = 5;
       const countDownInterval = setInterval(() => {
-        ctx.clearRect(0, 260, canvas.width, 50);
-        ctx.fillText(`العودة خلال ${countdown}...`, 70, 280);
+        ctx.clearRect(0, 350, canvas.width, 50);
+        ctx.fillText(`العودة خلال ${countdown}...`, 120, 380);
         countdown--;
         if (countdown < 0) {
           clearInterval(countDownInterval);
@@ -290,8 +292,8 @@
         let touch = e.touches[0];
         joyStart.x = touch.clientX;
         joyStart.y = touch.clientY;
-        joystick.style.left = (joyStart.x - 60) + "px";
-        joystick.style.top = (joyStart.y - 60) + "px";
+        joystick.style.left = (touch.clientX - 75) + "px";
+        joystick.style.top = (touch.clientY - 75) + "px";
         joystick.style.display = "block";
       }
     }, { passive: true });
@@ -302,9 +304,9 @@
         let dx = touch.clientX - joyStart.x;
         let dy = touch.clientY - joyStart.y;
         let angle = Math.atan2(dy, dx);
-        let distance = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
-        stick.style.left = (30 + Math.cos(angle) * distance) + "px";
-        stick.style.top = (30 + Math.sin(angle) * distance) + "px";
+        let distance = Math.min(Math.sqrt(dx*dx + dy*dy), 50);
+        stick.style.left = (45 + Math.cos(angle) * distance) + "px";
+        stick.style.top = (45 + Math.sin(angle) * distance) + "px";
 
         if (Math.abs(dx) > Math.abs(dy)) {
           changeDirection(dx > 0 ? 'right' : 'left');
@@ -316,8 +318,8 @@
 
     canvas.addEventListener("touchend", function () {
       joystick.style.display = "none";
-      stick.style.left = "30px";
-      stick.style.top = "30px";
+      stick.style.left = "45px";
+      stick.style.top = "45px";
     });
   </script>
 </body>
